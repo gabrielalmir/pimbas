@@ -47,11 +47,11 @@ export function registerGoal(
   ownGoal = false,
 ): Match {
   if (match.status === "finished") {
-    throw new Error("Partidas encerradas nao aceitam novos gols.");
+    throw new Error("Partidas encerradas não aceitam novos gols.");
   }
 
   if (hasMatchTimeExpired(match, now) && match.status !== "golden_goal") {
-    throw new Error("Tempo esgotado: nao e permitido marcar gols apos o fim da partida.");
+    throw new Error("Tempo esgotado: não é permitido marcar gols após o fim da partida.");
   }
 
   const player = getPlayerInMatch(match, playerId);
@@ -83,12 +83,12 @@ export function registerGoal(
 export function undoGoal(match: Match, goalId: string, now = new Date()): Match {
   const goal = match.goals.find((item) => item.id === goalId);
   if (!goal) {
-    throw new Error("Gol nao encontrado na partida.");
+    throw new Error("Gol não encontrado na partida.");
   }
 
   const elapsedSinceGoalMs = now.getTime() - new Date(goal.scoredAt).getTime();
   if (elapsedSinceGoalMs > 10_000) {
-    throw new Error("Gol so pode ser desfeito nos primeiros 10 segundos.");
+    throw new Error("Gol só pode ser desfeito nos primeiros 10 segundos.");
   }
 
   const goals = match.goals.filter((item) => item.id !== goalId);

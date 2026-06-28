@@ -3,7 +3,7 @@ import type { Match, TeamPair, Tournament, TournamentMatchup } from "./types";
 
 export function createRandomPairs(playerIds: string[]): TeamPair[] {
   if (playerIds.length % 2 !== 0) {
-    throw new Error("Torneio precisa de numero par de jogadores.");
+    throw new Error("Torneio precisa de número par de jogadores.");
   }
 
   return [...playerIds].sort().reduce<TeamPair[]>((pairs, playerId, index, sorted) => {

@@ -53,7 +53,7 @@ export default function GroupsPage() {
         <Eyebrow>Mesas e ligas</Eyebrow>
         <h1 className="font-display text-4xl uppercase leading-none">Seus grupos</h1>
         <p className="mt-2 max-w-xl text-sm text-primary-foreground/80">
-          Escolha a liga da rodada, crie uma mesa nova ou entre com um codigo de convite.
+          Escolha a liga da rodada, crie uma mesa nova ou entre com um código de convite.
         </p>
       </PageHeader>
 

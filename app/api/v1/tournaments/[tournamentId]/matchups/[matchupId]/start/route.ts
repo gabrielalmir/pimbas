@@ -31,15 +31,15 @@ export async function POST(request: Request, { params }: Context) {
       ? tournament.thirdPlaceMatchup
       : tournament.matchups.find((item) => item.id === matchupId);
     if (!matchup || !matchup.pairAId || !matchup.pairBId) {
-      return badRequest("Confronto ainda nao tem as duas duplas definidas.");
+      return badRequest("Confronto ainda não tem as duas duplas definidas.");
     }
     if (!isMatchupReadyToStart(matchup)) {
-      return badRequest("Confronto nao esta disponivel para iniciar.");
+      return badRequest("Confronto não está disponível para iniciar.");
     }
 
     const pairA = tournament.pairs.find((pair) => pair.id === matchup.pairAId);
     const pairB = tournament.pairs.find((pair) => pair.id === matchup.pairBId);
-    if (!pairA || !pairB) return badRequest("Duplas do confronto nao encontradas.");
+    if (!pairA || !pairB) return badRequest("Duplas do confronto não encontradas.");
 
     const match = await db.match.create({
       data: {
