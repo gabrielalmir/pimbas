@@ -49,12 +49,6 @@ bun run db:migrate          # prisma migrate dev
 bun run db:seed             # seed de desenvolvimento
 ```
 
-Para rodar comandos em um workspace específico:
-
-```bash
-bun run --filter=@pimbas/frontend build
-```
-
 O app roda por padrão em modo **mock** (armazenamento local). Para usar a API embutida (`app/api/v1/**`), defina `NEXT_PUBLIC_API_URL=/` e configure `DATABASE_URL`, `JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET` (veja `.env.example`). A troca é feita apenas no `dataClient` (`lib/data-client-switch.ts`).
 
 ## Escopo Implementado (atual)
@@ -116,6 +110,10 @@ O app roda por padrão em modo **mock** (armazenamento local). Para usar a API e
 - TypeScript strict, zero `any` no código de aplicação.
 - Testes: domain (regras puras) + API (integração com mock de Prisma via vitest).
 - `bun run lint/typecheck/test/build` passa.
+- Supply chain: CI usa `bun install --frozen-lockfile`, OSV Scanner em `bun.lock`,
+  GitHub Actions pinadas por SHA e Dependabot semanal. Novas entradas em
+  `trustedDependencies` exigem revisão humana, porque scripts de instalação
+  executam código de pacotes durante o install.
 
 ## Arquitetura em Resumo
 

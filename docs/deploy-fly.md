@@ -61,7 +61,7 @@ fly deploy
 ```
 
 Configure o `release_command` do `fly.toml` gerado para rodar
-`bunx --cwd src prisma migrate deploy` antes de promover cada release, e o
+`bunx prisma migrate deploy` antes de promover cada release, e o
 `internal_port` para `3000` (ver `EXPOSE`/`HEALTHCHECK` no `Dockerfile`).
 
 ### Verificação
