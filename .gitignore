@@ -15,3 +15,12 @@ blob-report/
 .vercel
 .DS_Store
 *.pem
+
+# Trailer pipeline (trailer/README.md) — gerados localmente, não versionados.
+trailer/raw/
+trailer/out/
+trailer/remotion/public/clips/
+trailer/remotion/public/audio/
+trailer/remotion/node_modules/
+
+terminals/

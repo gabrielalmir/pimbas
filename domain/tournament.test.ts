@@ -188,6 +188,28 @@ describe("tournament rules", () => {
     expect(final?.pairAId).toBe("a");
   });
 
+  it("maps match pair winner ids to tournament pair ids when applying a finished match", () => {
+    const tournament = makeFourPairTournament();
+    const game1 = tournament.matchups[0];
+    const withMatch = {
+      ...tournament,
+      matchups: tournament.matchups.map((item) =>
+        item.id === game1.id ? { ...item, matchId: "match-test", status: "live" as const } : item,
+      ),
+    };
+    const match = makeFinishedMatch({
+      tournamentId: tournament.id,
+      pairA: createPair("match-pair-a", "A", "p1", "p2"),
+      pairB: createPair("match-pair-b", "B", "p3", "p4"),
+      winnerPairId: "match-pair-a",
+    });
+
+    const updated = applyMatchResultToTournament(withMatch, match);
+    const updatedGame1 = updated.matchups.find((item) => item.id === game1.id);
+
+    expect(updatedGame1?.winnerPairId).toBe(game1.pairAId);
+  });
+
   it("flags a matchup as ready to start only when both pairs are set and no match exists yet", () => {
     const tournament = makeFourPairTournament();
     const [game1, , final] = tournament.matchups;

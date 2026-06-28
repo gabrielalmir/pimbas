@@ -182,6 +182,7 @@ export default function TournamentsPage() {
                 type="button"
                 aria-pressed={isSelected}
                 aria-label={`${isSelected ? "Remover" : "Selecionar"} ${player.displayName}`}
+                data-testid={`tournament-player-${player.initials.toLowerCase()}`}
               >
                 <PimbasAvatar
                   initials={player.initials}

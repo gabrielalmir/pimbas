@@ -1,0 +1,21 @@
+{
+  "name": "pimbas-trailer",
+  "private": true,
+  "version": "0.1.0",
+  "scripts": {
+    "studio": "bunx remotion studio src/index.ts",
+    "render:15s": "bunx remotion render src/index.ts PimbasTrailer15 ../out/pimbas-trailer-15s.mp4",
+    "render": "bun run render:15s"
+  },
+  "dependencies": {
+    "@remotion/google-fonts": "4.0.300",
+    "react": "19.0.0",
+    "react-dom": "19.0.0",
+    "remotion": "4.0.300"
+  },
+  "devDependencies": {
+    "@remotion/cli": "4.0.300",
+    "@types/react": "19.0.0",
+    "typescript": "^5.9.3"
+  }
+}

@@ -18,7 +18,13 @@
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
     "db:deploy": "prisma migrate deploy",
-    "db:seed": "bun run prisma/seed.ts"
+    "db:seed": "bun run prisma/seed.ts",
+    "trailer:capture": "npx playwright test -c trailer/playwright.trailer.config.ts --grep \"c1 —|c4 —\"",
+    "trailer:sfx": "node trailer/scripts/generate-sfx.mjs",
+    "trailer:music": "node trailer/scripts/generate-music.mjs",
+    "trailer:copy-clips": "node trailer/scripts/copy-clips.mjs",
+    "trailer:render": "cd trailer/remotion && bun install && bun run render",
+    "trailer:build": "bun run trailer:capture && bun run trailer:sfx && bun run trailer:music && bun run trailer:copy-clips && bun run trailer:render"
   },
   "dependencies": {
     "@base-ui/react": "^1.6.0",

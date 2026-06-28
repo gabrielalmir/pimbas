@@ -130,18 +130,27 @@ export function resolveInitialByes(tournament: Tournament): Tournament {
     .reduce((current, matchup) => advanceTournament(current, matchup.id), tournament);
 }
 
+/** Traduz o vencedor da partida (IDs das duplas do match) para o ID da dupla no torneio. */
+function tournamentWinnerFromMatch(matchup: TournamentMatchup, match: Match): string | undefined {
+  if (!match.winnerPairId) return undefined;
+  if (match.winnerPairId === match.pairA.id) return matchup.pairAId;
+  if (match.winnerPairId === match.pairB.id) return matchup.pairBId;
+  return undefined;
+}
+
 /** Le o placar de uma partida finalizada e devolve o torneio com o matchup correspondente avancado. */
 export function applyMatchResultToTournament(tournament: Tournament, match: Match): Tournament {
   const matchup =
     tournament.matchups.find((item) => item.matchId === match.id) ??
     (tournament.thirdPlaceMatchup?.matchId === match.id ? tournament.thirdPlaceMatchup : undefined);
-  if (!matchup || !match.winnerPairId) return tournament;
+  const winnerPairId = matchup ? tournamentWinnerFromMatch(matchup, match) : undefined;
+  if (!matchup || !winnerPairId) return tournament;
 
   const isThirdPlace = matchup.id === tournament.thirdPlaceMatchup?.id;
   const updatedMatchup: TournamentMatchup = {
     ...matchup,
     status: "finished",
-    winnerPairId: match.winnerPairId,
+    winnerPairId,
   };
 
   if (isThirdPlace) {
