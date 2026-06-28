@@ -31,7 +31,7 @@ export default function PlayerProfilePage() {
 
   const players = playersQuery.data ?? [];
   const player = players.find((item) => item.id === playerId) ?? players[0];
-  if (!player) return <div className="p-8">Jogador nÃ£o encontrado.</div>;
+  if (!player) return <div className="p-8">Jogador não encontrado.</div>;
 
   const ranking = rankingQuery.data?.find((entry) => entry.playerId === player.id);
   const stats = ranking?.stats;
@@ -116,14 +116,14 @@ export default function PlayerProfilePage() {
               detail={`${stats?.wins ?? 0}V / ${stats?.losses ?? 0}D`}
             />
             <SummaryTile
-              label="Gols por funÃ§Ã£o"
+              label="Gols por função"
               value={`${stats?.attackerGoals ?? 0}/${stats?.goalkeeperGoals ?? 0}`}
               detail="ataque / gol"
             />
             <SummaryTile
-              label="Melhor sequÃªncia"
+              label="Melhor sequência"
               value={stats?.bestStreak ?? 0}
-              detail="vitÃ³rias"
+              detail="vitórias"
             />
           </div>
 
@@ -132,11 +132,11 @@ export default function PlayerProfilePage() {
               <div className="rounded-lg bg-muted p-4">
                 <p className="text-sm text-muted-foreground">Perfil declarado</p>
                 <strong className="mt-1 block text-lg">
-                  {player.style || "Estilo ainda nÃ£o informado"}
+                  {player.style || "Estilo ainda não informado"}
                 </strong>
               </div>
               <div className="rounded-lg bg-muted p-4">
-                <p className="text-sm text-muted-foreground">PosiÃ§Ã£o favorita</p>
+                <p className="text-sm text-muted-foreground">Posição favorita</p>
                 <strong className="mt-1 block text-lg">{positionLabel}</strong>
               </div>
             </div>
