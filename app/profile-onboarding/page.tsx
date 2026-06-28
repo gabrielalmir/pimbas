@@ -53,7 +53,7 @@ export default function ProfileOnboarding() {
           Entre na mesa com identidade
         </h1>
         <p className="mt-2 max-w-xl text-sm text-primary-foreground/80">
-          A ficha aparece em placares, rankings e sorteios. Use um nome facil de reconhecer durante
+          A ficha aparece em placares, rankings e sorteios. Use um nome fácil de reconhecer durante
           a rodada.
         </p>
       </PageHeader>
@@ -141,7 +141,7 @@ export default function ProfileOnboarding() {
               />
             </Field>
             <Field>
-              <FieldLabel htmlFor="nationality">Pais</FieldLabel>
+              <FieldLabel htmlFor="nationality">País</FieldLabel>
               <Input
                 id="nationality"
                 value={form.nationality}
