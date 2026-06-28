@@ -204,7 +204,7 @@ export default function GroupSettingsPage() {
           title={
             <span className="inline-flex items-center gap-1.5">
               <Users className="size-4" />
-              Membros - {members.length}
+              Membros · {members.length}
             </span>
           }
         >

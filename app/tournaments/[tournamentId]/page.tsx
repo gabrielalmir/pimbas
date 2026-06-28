@@ -420,7 +420,7 @@ export default function TournamentBracketPage() {
           title={
             <span className="inline-flex items-center gap-1.5">
               <Medal className="size-4 text-[var(--pmb-clay)]" />
-              Disputa de 3o lugar
+              Disputa de 3º lugar
             </span>
           }
           className="bg-[color-mix(in_oklch,var(--pmb-gold),white_78%)]"
