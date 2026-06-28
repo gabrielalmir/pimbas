@@ -910,7 +910,7 @@ describe("tournaments", () => {
     expect(tournamentRes.status).toBe(200);
     const updatedTournament = (await tournamentRes.json()).tournament;
     expect(updatedTournament.status).toBe("finished");
-    expect(updatedTournament.championPairId).toBe(finishedMatch.winnerPairId);
+    expect(updatedTournament.championPairId).toBe(finalMatchup.pairAId);
   });
 
   it("creates a tournament with manual pairs using the given names", async () => {
@@ -1029,7 +1029,7 @@ describe("tournaments", () => {
     );
     const finishedTournament = (await finalState.json()).tournament;
     expect(finishedTournament.status).toBe("finished");
-    expect(finishedTournament.championPairId).toBe(finishedFinal.winnerPairId);
+    expect(finishedTournament.championPairId).toBe(final.pairAId);
     expect(finishedTournament.thirdPlaceMatchup.status).toBe("finished");
   });
 

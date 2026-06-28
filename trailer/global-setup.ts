@@ -4,6 +4,17 @@ import os from "node:os";
 import path from "node:path";
 import type { FullConfig } from "@playwright/test";
 
+/**
+ * Setup de banco dedicado ao trailer — roda `bun run db:deploy`/`db:seed` (scripts que
+ * usam a sintaxe e o runtime TS do bun, ex. "bun run prisma/seed.ts").
+ *
+ * Não dá para assumir quem está executando este arquivo: `bun run trailer:capture` chama
+ * `npx playwright`, e o `npx` roda sob Node — então `process.execPath` aqui é node.exe, não
+ * bun.exe, e "node.exe run db:deploy" não existe. Também não dá para confiar em "bun"/
+ * "bun.cmd" via PATH: o cmd.exe aninhado que o execSync abre no Windows não resolve esse
+ * shim em alguns shells (reproduzido neste repo até com Node instalado). Por isso resolvemos
+ * o executável do bun por caminho conhecido, sem depender de quem está rodando este script.
+ */
 const root = path.join(__dirname, "..");
 
 function resolveBunExecutable(): string {
@@ -15,6 +26,7 @@ function resolveBunExecutable(): string {
 
   const found = candidates.find((candidate) => existsSync(candidate));
   if (found) return found;
+  // último recurso: espera que "bun" esteja resolvível no PATH do shell padrão.
   return "bun";
 }
 
@@ -26,9 +38,8 @@ function run(bunExecutable: string, args: string[]) {
   });
 }
 
-export default function globalSetup(_: FullConfig) {
+export default function trailerGlobalSetup(_: FullConfig) {
   if (process.env.PIMBAS_E2E_SKIP_DB_SETUP === "1") return;
-
   const bunExecutable = resolveBunExecutable();
   run(bunExecutable, ["run", "db:deploy"]);
   run(bunExecutable, ["run", "db:seed"]);
