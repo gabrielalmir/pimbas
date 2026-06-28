@@ -139,8 +139,8 @@ export default function ProfilePage() {
           </h2>
           <p className="mt-1 text-sm text-primary-foreground/80">
             {positionEntry?.label ?? "Versátil"}
-            {nationality ? ` - ${nationality}` : ""}
-            {style ? ` - ${style}` : ""}
+            {nationality ? ` · ${nationality}` : ""}
+            {style ? ` · ${style}` : ""}
           </p>
           {bio && (
             <p className="mt-3 max-w-sm rounded-lg bg-primary-foreground/10 px-3 py-2 text-sm text-primary-foreground/86 italic">
@@ -287,7 +287,7 @@ export default function ProfilePage() {
       </SectionCard>
 
       <SectionCard title="E-mail">
-        <p className="text-sm text-muted-foreground">{user.email ?? "-"}</p>
+        <p className="text-sm text-muted-foreground">{user.email ?? "—"}</p>
         <p className="mt-1 text-xs text-muted-foreground">
           O endereço de e-mail não pode ser alterado por aqui.
         </p>

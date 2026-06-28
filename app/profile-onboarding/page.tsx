@@ -202,7 +202,7 @@ export default function ProfileOnboarding() {
               <h2 className="mt-1 text-lg font-black">{form.displayName || "Nome de mesa"}</h2>
               <p className="mt-2 text-sm text-primary-foreground/75">
                 {positionEntry?.label ?? "Versátil"}
-                {form.style ? ` - ${form.style}` : ""}
+                {form.style ? ` · ${form.style}` : ""}
               </p>
             </div>
           </div>
