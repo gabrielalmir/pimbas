@@ -58,10 +58,10 @@ export default function GroupSettingsPage() {
   return (
     <Page>
       <PageHeader dark>
-        <Eyebrow>ConfiguraÃ§Ãµes</Eyebrow>
+        <Eyebrow>Configurações</Eyebrow>
         <h1 className="font-display text-4xl uppercase leading-none">{group?.name ?? "Grupo"}</h1>
         <p className="mt-2 max-w-xl text-sm text-primary-foreground/80">
-          Ajustes bÃ¡sicos da liga. AlteraÃ§Ãµes aparecem nas telas de partidas, torneios e ranking.
+          Ajustes básicos da liga. Alterações aparecem nas telas de partidas, torneios e ranking.
         </p>
       </PageHeader>
 
@@ -101,7 +101,7 @@ export default function GroupSettingsPage() {
                 />
               </Field>
               <Field>
-                <FieldLabel htmlFor="settings-description">DescriÃ§Ã£o</FieldLabel>
+                <FieldLabel htmlFor="settings-description">Descrição</FieldLabel>
                 <Input
                   id="settings-description"
                   value={desc}
@@ -111,7 +111,7 @@ export default function GroupSettingsPage() {
             </FieldGroup>
             <FieldGroup className="grid gap-3 md:grid-cols-3">
               <Field>
-                <FieldLabel htmlFor="settings-goals">Gols padrÃ£o</FieldLabel>
+                <FieldLabel htmlFor="settings-goals">Gols padrão</FieldLabel>
                 <Input
                   id="settings-goals"
                   type="number"
@@ -126,7 +126,7 @@ export default function GroupSettingsPage() {
                 />
               </Field>
               <Field>
-                <FieldLabel htmlFor="settings-minutes">Minutos padrÃ£o</FieldLabel>
+                <FieldLabel htmlFor="settings-minutes">Minutos padrão</FieldLabel>
                 <Input
                   id="settings-minutes"
                   type="number"
@@ -176,7 +176,7 @@ export default function GroupSettingsPage() {
       {canManageInvite && group && (
         <SectionCard title="Convidar jogadores">
           <p className="text-sm text-muted-foreground">
-            Compartilhe este cÃ³digo para que novos jogadores entrem na liga.
+            Compartilhe este código para que novos jogadores entrem na liga.
           </p>
           <div className="mt-3 flex flex-wrap items-center gap-3">
             <span className="rounded-lg border-2 border-dashed border-[var(--pmb-gold)] bg-[color-mix(in_oklch,var(--pmb-gold),white_85%)] px-4 py-2 font-display text-xl uppercase tracking-[0.18em] text-[var(--pmb-clay)]">
@@ -191,7 +191,7 @@ export default function GroupSettingsPage() {
               ) : (
                 <>
                   <Copy data-icon="inline-start" />
-                  Copiar cÃ³digo
+                  Copiar código
                 </>
               )}
             </Button>
@@ -204,7 +204,7 @@ export default function GroupSettingsPage() {
           title={
             <span className="inline-flex items-center gap-1.5">
               <Users className="size-4" />
-              Membros Â· {members.length}
+              Membros · {members.length}
             </span>
           }
         >

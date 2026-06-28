@@ -8,8 +8,13 @@ import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { createPlayerProfile } from "@/lib/api";
+import type { FavoritePosition } from "@/lib/domain";
 
-type FavoritePosition = "goalkeeper" | "attacker" | "versatile";
+const POSITION_OPTIONS: { value: FavoritePosition; label: string; code: string }[] = [
+  { value: "goalkeeper", label: "Goleiro", code: "GLR" },
+  { value: "attacker", label: "Atacante", code: "ATA" },
+  { value: "versatile", label: "Versátil", code: "VERS" },
+];
 
 export default function ProfileOnboarding() {
   const [form, setForm] = useState({
@@ -22,13 +27,19 @@ export default function ProfileOnboarding() {
     bio: "",
   });
   const [busy, setBusy] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+
+  const positionEntry = POSITION_OPTIONS.find((option) => option.value === form.favoritePosition);
 
   const handle = async () => {
     if (!form.displayName.trim() || !form.initials.trim()) return;
     setBusy(true);
+    setSaveError(null);
     try {
       await createPlayerProfile(form);
       window.location.href = "/groups";
+    } catch {
+      setSaveError("Não foi possível salvar sua ficha. Tente novamente.");
     } finally {
       setBusy(false);
     }
@@ -93,7 +104,7 @@ export default function ProfileOnboarding() {
               </Field>
             </div>
             <Field>
-              <FieldLabel>Posicao favorita</FieldLabel>
+              <FieldLabel>Posição favorita</FieldLabel>
               <ToggleGroup
                 value={[form.favoritePosition]}
                 onValueChange={(value) => {
@@ -103,16 +114,22 @@ export default function ProfileOnboarding() {
                 variant="outline"
                 className="grid grid-cols-3 rounded-lg bg-muted p-1"
               >
-                <ToggleGroupItem value="goalkeeper" className="w-full font-black">
-                  GOL
-                </ToggleGroupItem>
-                <ToggleGroupItem value="attacker" className="w-full font-black">
-                  ATA
-                </ToggleGroupItem>
-                <ToggleGroupItem value="versatile" className="w-full font-black">
-                  VERS
-                </ToggleGroupItem>
+                {POSITION_OPTIONS.map((option) => (
+                  <ToggleGroupItem
+                    key={option.value}
+                    value={option.value}
+                    className="w-full font-black data-[pressed]:bg-background data-[pressed]:text-foreground data-[pressed]:shadow-sm"
+                  >
+                    {option.code}
+                  </ToggleGroupItem>
+                ))}
               </ToggleGroup>
+              <p className="mt-1.5 text-xs text-muted-foreground">
+                Selecionado:{" "}
+                <span className="font-semibold text-foreground">
+                  {positionEntry?.label ?? "Versátil"}
+                </span>
+              </p>
             </Field>
             <Field>
               <FieldLabel htmlFor="style">Estilo</FieldLabel>
@@ -147,6 +164,11 @@ export default function ProfileOnboarding() {
               />
             </Field>
           </FieldGroup>
+          {saveError && (
+            <p className="mt-4 rounded-md bg-[color-mix(in_oklch,var(--pmb-clay),white_86%)] px-3 py-2 text-sm font-semibold text-[var(--pmb-clay)]">
+              {saveError}
+            </p>
+          )}
           <Button
             className="mt-4 h-12 w-full"
             onClick={handle}
@@ -158,15 +180,20 @@ export default function ProfileOnboarding() {
         </SectionCard>
 
         <aside className="rounded-lg border border-foreground/10 bg-primary p-4 text-primary-foreground shadow-[0_14px_0_rgba(23,73,56,0.08),0_18px_34px_rgba(42,33,19,0.08)] [background-image:var(--field-rods)]">
-          <Eyebrow>Previa</Eyebrow>
+          <Eyebrow>Prévia</Eyebrow>
           <div className="grid min-h-64 content-between rounded-lg border border-primary-foreground/15 bg-primary-foreground/10 p-4">
             <div className="flex items-start justify-between gap-3">
               <strong className="font-display text-6xl leading-none text-[var(--pmb-gold)]">
                 {form.shirtNumber || 0}
               </strong>
-              <span className="rounded-full bg-[var(--pmb-gold)] px-3 py-1 text-xs font-black text-foreground">
-                {form.nationality || "BRA"}
-              </span>
+              <div className="flex flex-col items-end gap-1.5">
+                <span className="rounded-full bg-[var(--pmb-gold)] px-3 py-1 text-xs font-black text-foreground">
+                  {positionEntry?.code ?? "VERS"}
+                </span>
+                <span className="rounded-full bg-primary-foreground/15 px-3 py-1 text-xs font-black text-primary-foreground">
+                  {form.nationality || "BRA"}
+                </span>
+              </div>
             </div>
             <div>
               <p className="font-display text-4xl uppercase leading-none">
@@ -174,7 +201,8 @@ export default function ProfileOnboarding() {
               </p>
               <h2 className="mt-1 text-lg font-black">{form.displayName || "Nome de mesa"}</h2>
               <p className="mt-2 text-sm text-primary-foreground/75">
-                {form.style || "Estilo ainda não informado"}
+                {positionEntry?.label ?? "Versátil"}
+                {form.style ? ` · ${form.style}` : ""}
               </p>
             </div>
           </div>
