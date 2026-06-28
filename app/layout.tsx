@@ -19,8 +19,16 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="pt-BR" className="h-full antialiased">
+    <html lang="pt-BR" className="h-full antialiased" suppressHydrationWarning>
       <head>
+        {/* Arma animações de scroll antes da pintura; sem JS o conteúdo
+            permanece visível (nada fica preso em opacity:0). */}
+        <script
+          // biome-ignore lint/security/noDangerouslySetInnerHtml: snippet estático, sem entrada do usuário
+          dangerouslySetInnerHTML={{
+            __html: "document.documentElement.setAttribute('data-js','')",
+          }}
+        />
         {/* Fontes do placar e da interface do clube. */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
