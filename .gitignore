@@ -1,0 +1,17 @@
+node_modules/
+dist/
+generated/
+.vite/
+.turbo/
+.next/
+next-env.d.ts
+*.local
+*.tsbuildinfo
+coverage/
+playwright-report/
+test-results/
+blob-report/
+.env*
+.vercel
+.DS_Store
+*.pem

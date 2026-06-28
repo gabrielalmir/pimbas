@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-labelledby="title">
+  <title id="title">Leo e Mao</title>
+  <rect width="120" height="120" rx="60" fill="#202018"/>
+  <path d="M0 88c20-17 38-24 60-24s40 7 60 24v32H0V88Z" fill="#1b5a40"/>
+  <circle cx="45" cy="51" r="22" fill="#d49a6b"/>
+  <circle cx="76" cy="51" r="22" fill="#b97852"/>
+  <path d="M26 43c9-17 25-22 39-8-13-1-25 1-39 8Z" fill="#202018"/>
+  <path d="M61 42c10-16 25-20 37-5-13-2-24 0-37 5Z" fill="#202018"/>
+  <circle cx="39" cy="55" r="2.5" fill="#202018"/>
+  <circle cx="51" cy="55" r="2.5" fill="#202018"/>
+  <circle cx="70" cy="55" r="2.5" fill="#202018"/>
+  <circle cx="82" cy="55" r="2.5" fill="#202018"/>
+  <path d="M40 67c5 3 9 3 14 0M70 67c5 3 9 3 14 0" fill="none" stroke="#202018" stroke-width="3" stroke-linecap="round"/>
+</svg>

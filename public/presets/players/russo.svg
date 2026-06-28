@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-labelledby="title">
+  <title id="title">Russo</title>
+  <rect width="120" height="120" rx="60" fill="#0f3322"/>
+  <path d="M0 88c20-17 38-24 60-24s40 7 60 24v32H0V88Z" fill="#dfaa31"/>
+  <circle cx="60" cy="50" r="28" fill="#e3ad78"/>
+  <path d="M33 45c4-20 17-30 34-29 16 1 26 11 29 29-22-7-42-7-63 0Z" fill="#d9c8a4"/>
+  <circle cx="50" cy="54" r="3" fill="#202018"/>
+  <circle cx="70" cy="54" r="3" fill="#202018"/>
+  <path d="M49 71c8 4 14 4 22 0" fill="none" stroke="#202018" stroke-width="4" stroke-linecap="round"/>
+  <path d="M38 35c11-20 31-22 45-8" fill="none" stroke="#f6efdc" stroke-width="7" stroke-linecap="round"/>
+</svg>

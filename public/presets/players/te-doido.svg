@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-labelledby="title">
+  <title id="title">Te Doido</title>
+  <rect width="120" height="120" rx="60" fill="#dfaa31"/>
+  <path d="M0 86c20-17 38-23 60-23s40 6 60 23v34H0V86Z" fill="#1b5a40"/>
+  <circle cx="60" cy="50" r="27" fill="#a86b4a"/>
+  <path d="M35 42c10-24 31-28 49-11 5 5 8 10 9 17-25-11-39 5-58-6Z" fill="#202018"/>
+  <circle cx="49" cy="54" r="3" fill="#202018"/>
+  <circle cx="72" cy="54" r="3" fill="#202018"/>
+  <path d="M48 69c9 3 18 3 27-1" fill="none" stroke="#202018" stroke-width="4" stroke-linecap="round"/>
+  <path d="M25 27l12 7M95 28l-12 7" stroke="#cf562d" stroke-width="5" stroke-linecap="round"/>
+</svg>

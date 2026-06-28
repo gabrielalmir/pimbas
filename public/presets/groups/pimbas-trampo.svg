@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" role="img" aria-labelledby="title desc">
+  <title id="title">Logo Pimbas do Trampo</title>
+  <desc id="desc">Escudo verde e dourado com letra P e hastes de pimbolim.</desc>
+  <defs>
+    <linearGradient id="field" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#1f6b4a"/>
+      <stop offset="1" stop-color="#0f3322"/>
+    </linearGradient>
+    <pattern id="rods" width="18" height="160" patternUnits="userSpaceOnUse">
+      <rect width="2" height="160" fill="#ffffff" opacity=".16"/>
+    </pattern>
+  </defs>
+  <circle cx="80" cy="80" r="76" fill="#dfaa31"/>
+  <circle cx="80" cy="80" r="67" fill="url(#field)"/>
+  <circle cx="80" cy="80" r="67" fill="url(#rods)" opacity=".65"/>
+  <path d="M43 39h48c20 0 33 12 33 30 0 19-14 31-35 31H70v27H43V39Zm27 23v16h18c6 0 10-3 10-8s-4-8-10-8H70Z" fill="#f6efdc"/>
+  <path d="M34 114c15 12 29 18 46 18 18 0 35-7 47-19" fill="none" stroke="#cf562d" stroke-width="8" stroke-linecap="round"/>
+</svg>

@@ -1,0 +1,167 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --font-sans: var(--pmb-font-ui);
+  --font-display: var(--pmb-font-display);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+:root {
+  --radius: 0.5rem;
+
+  --pmb-paper: #eee4cf;
+  --pmb-paper-soft: #f7f0df;
+  --pmb-paper-strong: #dfcfad;
+  --pmb-felt: #174938;
+  --pmb-felt-deep: #09291f;
+  --pmb-clay: #c64f31;
+  --pmb-gold: #d7a23a;
+  --pmb-live: #ec6548;
+  --pmb-blue: #315c72;
+  --pmb-ink: #211f18;
+  --pmb-ink-muted: #716a5c;
+  --pmb-white: #fffdf7;
+  --pmb-font-display: "Anton", Impact, Haettenschweiler, fantasy;
+  --pmb-font-ui: "Archivo", "Aptos", "Bahnschrift", "Trebuchet MS", sans-serif;
+  --field-rods: repeating-linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.05) 0 1px,
+    transparent 1px 25px
+  );
+  --pmb-table-grid:
+    linear-gradient(90deg, rgba(23, 73, 56, 0.07) 1px, transparent 1px),
+    linear-gradient(0deg, rgba(23, 73, 56, 0.055) 1px, transparent 1px);
+
+  --background: var(--pmb-paper-soft);
+  --foreground: var(--pmb-ink);
+  --card: var(--pmb-white);
+  --card-foreground: var(--pmb-ink);
+  --popover: var(--pmb-white);
+  --popover-foreground: var(--pmb-ink);
+  --primary: var(--pmb-felt);
+  --primary-foreground: var(--pmb-paper-soft);
+  --secondary: var(--pmb-paper-strong);
+  --secondary-foreground: var(--pmb-ink);
+  --muted: var(--pmb-paper-strong);
+  --muted-foreground: var(--pmb-ink-muted);
+  --accent: var(--pmb-gold);
+  --accent-foreground: var(--pmb-ink);
+  --destructive: #9d3d25;
+  --border: #d8c8aa;
+  --input: #d8c8aa;
+  --ring: var(--pmb-gold);
+
+  color: var(--foreground);
+  background: #d9cfb9;
+  font-family: var(--pmb-font-ui);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+}
+
+@keyframes pmb-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
+  }
+}
+
+@keyframes pmb-rod-slide {
+  from {
+    transform: translateX(calc(-50% - 22px));
+  }
+  to {
+    transform: translateX(calc(-50% + 22px));
+  }
+}
+
+@layer base {
+  * {
+    box-sizing: border-box;
+    border-color: var(--border);
+  }
+
+  body {
+    min-width: 320px;
+    min-height: 100vh;
+    margin: 0;
+    overflow-x: hidden;
+    background:
+      var(--pmb-table-grid),
+      radial-gradient(circle at 12% 0%, rgba(215, 162, 58, 0.18), transparent 28rem),
+      linear-gradient(135deg, #efe5cf 0%, #d8cdb6 54%, #cfc2a9 100%);
+    background-size:
+      30px 30px,
+      auto,
+      auto;
+    color: var(--foreground);
+    font-family: var(--pmb-font-ui);
+  }
+
+  #root {
+    min-height: 100vh;
+    max-width: 100vw;
+    overflow-x: hidden;
+  }
+
+  button,
+  input {
+    font: inherit;
+  }
+
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+
+  button:disabled {
+    cursor: not-allowed;
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  button {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  ::selection {
+    background: var(--pmb-gold);
+    color: var(--pmb-ink);
+  }
+
+  a:focus-visible,
+  button:focus-visible,
+  input:focus-visible {
+    outline: 3px solid var(--ring);
+    outline-offset: 3px;
+  }
+}

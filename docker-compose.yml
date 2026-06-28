@@ -1,0 +1,15 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: pimbas
+      POSTGRES_PASSWORD: pimbas
+      POSTGRES_DB: pimbas
+    ports:
+      - "5432:5432"
+    volumes:
+      - pimbas_postgres_data:/var/lib/postgresql/data
+
+volumes:
+  pimbas_postgres_data:

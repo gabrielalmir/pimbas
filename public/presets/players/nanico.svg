@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-labelledby="title">
+  <title id="title">Nanico</title>
+  <rect width="120" height="120" rx="60" fill="#eadfca"/>
+  <path d="M0 91c19-20 37-28 60-28s41 8 60 28v29H0V91Z" fill="#cf562d"/>
+  <circle cx="60" cy="51" r="25" fill="#c4895e"/>
+  <path d="M35 47c7-18 20-25 37-20 9 3 15 9 18 18-18-5-35-5-55 2Z" fill="#2c1b14"/>
+  <circle cx="51" cy="55" r="3" fill="#202018"/>
+  <circle cx="70" cy="55" r="3" fill="#202018"/>
+  <path d="M51 68c6 5 13 5 20 0" fill="none" stroke="#202018" stroke-width="4" stroke-linecap="round"/>
+  <path d="M38 84h44" stroke="#dfaa31" stroke-width="7" stroke-linecap="round"/>
+</svg>

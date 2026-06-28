@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-labelledby="title">
+  <title id="title">Parca</title>
+  <rect width="120" height="120" rx="60" fill="#1b5a40"/>
+  <path d="M0 87c20-16 38-23 60-23s40 7 60 23v33H0V87Z" fill="#f1ead9"/>
+  <circle cx="60" cy="50" r="27" fill="#8f573d"/>
+  <path d="M33 43c6-20 21-29 39-23 10 4 16 11 18 22-20-7-38-4-57 1Z" fill="#111"/>
+  <circle cx="50" cy="54" r="3" fill="#202018"/>
+  <circle cx="70" cy="54" r="3" fill="#202018"/>
+  <path d="M49 69c8 5 15 5 23 0" fill="none" stroke="#202018" stroke-width="4" stroke-linecap="round"/>
+  <path d="M30 25c12 6 47 6 60 0" fill="none" stroke="#dfaa31" stroke-width="8" stroke-linecap="round"/>
+</svg>
