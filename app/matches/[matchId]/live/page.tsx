@@ -231,7 +231,7 @@ export default function LiveMatchPage() {
               aria-pressed={ownGoalMode}
             >
               <ShieldAlert data-icon="inline-start" />
-              {ownGoalMode ? "Gol contra ativo — toque no responsável" : "Registrar gol contra"}
+              {ownGoalMode ? "Gol contra ativo - toque no responsável" : "Registrar gol contra"}
             </Button>
           </div>
 
@@ -449,7 +449,7 @@ export default function LiveMatchPage() {
               {isFinished
                 ? "Partida encerrada. Resultado registrado no histórico do grupo."
                 : isPaused
-                  ? "Partida pausada — retome o cronômetro para registrar gols."
+                  ? "Partida pausada - retome o cronômetro para registrar gols."
                   : shouldBlockGoalsByTime
                     ? "Tempo encerrado. Toque em Encerrar para salvar o resultado."
                     : "Toque no jogador que marcou. Desfaça em até 10 s pelo ícone ao lado."}

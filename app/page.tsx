@@ -52,7 +52,7 @@ const steps = [
 ] as const;
 
 const stats = [
-  { value: "∞", label: "partidas possíveis" },
+  { value: "999+", label: "partidas possíveis" },
   { value: "0", label: "planilhas necessárias" },
   { value: "1 min", label: "para começar" },
 ] as const;
@@ -128,7 +128,7 @@ export default function Home() {
         </div>
 
         <div className="relative z-10 mx-auto max-w-6xl px-6 pb-16 pt-12 md:px-10 md:pb-24 md:pt-16">
-          <Eyebrow>Pimbolim · Torneios · Rankings</Eyebrow>
+          <Eyebrow>Pimbolim - Torneios - Rankings</Eyebrow>
 
           <h1
             className="font-display uppercase leading-[0.88] text-[var(--pmb-paper-soft)]"
@@ -138,7 +138,7 @@ export default function Home() {
           </h1>
 
           <p className="mt-6 max-w-lg text-base text-primary-foreground/78 md:text-lg">
-            Organize torneios, registre partidas e domine o ranking de pimbolim do seu grupo — tudo
+            Organize torneios, registre partidas e domine o ranking de pimbolim do seu grupo - tudo
             em tempo real, sem planilha.
           </p>
 
@@ -196,7 +196,7 @@ export default function Home() {
               DIVERSÃO DE VERDADE
             </h2>
             <p className="mt-3 max-w-lg text-[var(--pmb-ink-muted)]">
-              Do primeiro gol ao torneio final — cada partida vira memória.
+              Do primeiro gol ao torneio final - cada partida vira memória.
             </p>
           </ScrollReveal>
 

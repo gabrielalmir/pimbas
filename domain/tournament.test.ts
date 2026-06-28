@@ -47,7 +47,7 @@ function makeFinishedMatch(overrides: Partial<Match>): Match {
 
 describe("tournament rules", () => {
   it("rejects odd number of players", () => {
-    expect(() => createRandomPairs(["p1", "p2", "p3"])).toThrow("numero par");
+    expect(() => createRandomPairs(["p1", "p2", "p3"])).toThrow("número par");
   });
 
   it("generates byes when pair count is not a perfect bracket", () => {

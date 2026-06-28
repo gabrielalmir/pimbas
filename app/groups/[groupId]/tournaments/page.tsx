@@ -69,7 +69,7 @@ export default function TournamentsPage() {
       : manualPairs.length < 2
         ? "Monte pelo menos duas duplas."
         : unassignedIds.length > 0
-          ? "Ainda ha jogadores sem dupla."
+          ? "Ainda há jogadores sem dupla."
           : "";
 
   if (!group || playersQuery.isLoading || tournamentsQuery.isLoading) return <LoadingState />;
@@ -199,7 +199,7 @@ export default function TournamentsPage() {
         </div>
 
         <div className="mt-4 flex items-center justify-between gap-3">
-          <h3 className="font-display text-lg uppercase leading-none">Formacao das duplas</h3>
+          <h3 className="font-display text-lg uppercase leading-none">Formação das duplas</h3>
         </div>
         <ToggleGroup
           value={[pairMode]}
@@ -216,7 +216,7 @@ export default function TournamentsPage() {
         >
           <ToggleGroupItem value="random" className="w-full gap-1.5 font-black">
             <Dices className="size-4" />
-            Aleatoria
+            Aleatória
           </ToggleGroupItem>
           <ToggleGroupItem value="manual" className="w-full gap-1.5 font-black">
             <UsersRound className="size-4" />

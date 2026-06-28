@@ -21,6 +21,7 @@ export default function RootLayout({
   return (
     <html lang="pt-BR" className="h-full antialiased" suppressHydrationWarning>
       <head>
+        <meta charSet="utf-8" />
         {/* Arma animações de scroll antes da pintura; sem JS o conteúdo
             permanece visível (nada fica preso em opacity:0). */}
         <script
