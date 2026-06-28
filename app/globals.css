@@ -81,6 +81,79 @@
   text-rendering: optimizeLegibility;
 }
 
+/* Scroll reveal — armed only when JS is active ([data-js] set before paint),
+   so content is never invisible for no-JS, crawlers, or if the observer fails. */
+[data-js] .reveal {
+  opacity: 0;
+  transform: translateY(1.5rem);
+  transition:
+    opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+[data-js] .reveal.visible {
+  opacity: 1;
+  transform: none;
+}
+
+.reveal-d1 {
+  transition-delay: 0.08s;
+}
+.reveal-d2 {
+  transition-delay: 0.16s;
+}
+.reveal-d3 {
+  transition-delay: 0.24s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-js] .reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
+
+/* ── Foosball table markings ───────────────────────────────────────────────
+   Painted white lines on the felt: a center line, center circle and the two
+   goal boxes — turns the green hero into a table seen from above. */
+.felt-lines {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  color: rgba(255, 255, 255, 0.11);
+}
+
+/* ── Steel rod ─────────────────────────────────────────────────────────────
+   The signature divider: a chromed rod threaded with molded players. */
+.rod-bar {
+  height: 6px;
+  border-radius: 999px;
+  background: linear-gradient(
+    180deg,
+    #f6f7f8 0%,
+    #c4c8cd 16%,
+    #787e87 50%,
+    #aab0b7 82%,
+    #e4e7ea 100%
+  );
+  box-shadow:
+    0 1px 1px rgba(0, 0, 0, 0.45),
+    0 0 0 0.5px rgba(0, 0, 0, 0.15);
+}
+
+.rod-cap {
+  height: 14px;
+  width: 14px;
+  border-radius: 999px;
+  background: radial-gradient(circle at 35% 30%, #f6f7f8, #9aa0a8 55%, #5d636b);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+}
+
+.rod-figure {
+  filter: drop-shadow(0 2px 2px rgba(9, 41, 31, 0.28));
+}
+
 @keyframes pmb-pulse {
   0%,
   100% {

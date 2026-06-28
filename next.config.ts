@@ -1,7 +1,6 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
   reactCompiler: true,
   // Build de imagem Docker enxuta (server.js standalone) para self-host fora da Vercel.
   output: "standalone",
