@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import type { CreateFriendlyInput, CreateTournamentInput } from "@/lib/domain";
+import type { CreateFriendlyInput, CreateTournamentInput, Match } from "@/lib/domain";
+import { registerGoal as domainRegisterGoal } from "@/lib/domain";
 import type { UpdateGroupInput } from "./data-client";
 import { dataClient } from "./data-client-switch";
 
@@ -97,10 +98,42 @@ export function useCreateFriendly() {
 
 export function useRegisterGoal(matchId: string) {
   const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: ({ playerId, ownGoal = false }: { playerId: string; ownGoal?: boolean }) =>
+  return useMutation<
+    Match,
+    unknown,
+    { playerId: string; ownGoal?: boolean },
+    { previousMatch?: Match }
+  >({
+    mutationFn: ({ playerId, ownGoal = false }) =>
       dataClient.registerGoal(matchId, playerId, ownGoal),
-    onSuccess: (match) => {
+    onMutate: async (variables) => {
+      await queryClient.cancelQueries({ queryKey: ["match", matchId] });
+      const previousMatch = queryClient.getQueryData<Match>(["match", matchId]);
+
+      if (previousMatch) {
+        try {
+          // Optimistic update: apply the goal client-side immediately so UI reflects
+          // the score change with near-zero latency (<1s requirement for TDD fix).
+          const optimistic = domainRegisterGoal(
+            previousMatch,
+            variables.playerId,
+            new Date(),
+            variables.ownGoal,
+          );
+          queryClient.setQueryData(["match", matchId], optimistic);
+        } catch {
+          // Do not apply optimistic if domain rules reject it (e.g. time expired)
+        }
+      }
+
+      return { previousMatch };
+    },
+    onError: (_err: unknown, _variables: unknown, context?: { previousMatch?: Match }) => {
+      if (context?.previousMatch) {
+        queryClient.setQueryData(["match", matchId], context.previousMatch);
+      }
+    },
+    onSuccess: (match: Match) => {
       queryClient.setQueryData(["match", matchId], match);
       void queryClient.invalidateQueries({
         queryKey: ["matches", match.groupId],
