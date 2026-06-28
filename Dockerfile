@@ -18,8 +18,10 @@ RUN bun install --frozen-lockfile
 
 # ---------- build: Prisma client + Next.js standalone build ----------
 FROM deps AS build
+ARG DATABASE_URL=postgresql://pimbas:pimbas@localhost:5432/pimbas?schema=public
+ENV DATABASE_URL=$DATABASE_URL
 COPY . .
-RUN bun run db:generate && bun run build
+RUN bun run build
 
 # ---------- runner ----------
 FROM oven/bun:1-slim AS runner
