@@ -98,10 +98,15 @@ export function useCreateFriendly() {
 
 export function useRegisterGoal(matchId: string) {
   const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: ({ playerId, ownGoal = false }: { playerId: string; ownGoal?: boolean }) =>
+  return useMutation<
+    Match,
+    unknown,
+    { playerId: string; ownGoal?: boolean },
+    { previousMatch?: Match }
+  >({
+    mutationFn: ({ playerId, ownGoal = false }) =>
       dataClient.registerGoal(matchId, playerId, ownGoal),
-    onMutate: async (variables: { playerId: string; ownGoal?: boolean }) => {
+    onMutate: async (variables) => {
       await queryClient.cancelQueries({ queryKey: ["match", matchId] });
       const previousMatch = queryClient.getQueryData<Match>(["match", matchId]);
 
