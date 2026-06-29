@@ -66,10 +66,20 @@ function createDbMock() {
             : undefined;
         return Promise.resolve(found ?? null);
       },
-      update({ where, data }: { where: { id: string }; data: Partial<MockUser> & { tokenVersion?: { increment: number } } }) {
+      update({
+        where,
+        data,
+      }: {
+        where: { id: string };
+        data: { passwordHash?: string | null; tokenVersion?: number | { increment: number } };
+      }) {
         const user = users.get(where.id);
         if (!user) throw new Error("User not found");
-        if (data.tokenVersion && typeof data.tokenVersion === "object" && "increment" in data.tokenVersion) {
+        if (
+          data.tokenVersion &&
+          typeof data.tokenVersion === "object" &&
+          "increment" in data.tokenVersion
+        ) {
           user.tokenVersion += data.tokenVersion.increment;
         } else if (typeof data.tokenVersion === "number") {
           user.tokenVersion = data.tokenVersion;
@@ -311,7 +321,9 @@ describe("POST /api/v1/auth/reset-password", () => {
   it("returns 400 for an unknown token", async () => {
     const { POST } = await import("./reset-password/route");
 
-    const res = await POST(makeResetRequest({ token: "non-existent-token", password: "NewPass1!" }));
+    const res = await POST(
+      makeResetRequest({ token: "non-existent-token", password: "NewPass1!" }),
+    );
     expect(res.status).toBe(400);
   });
 
@@ -355,5 +367,82 @@ describe("POST /api/v1/auth/reset-password", () => {
     const unchanged = db._users.get(user.id);
     expect(unchanged?.passwordHash).toBe("hashed:OldPass1!");
     expect(unchanged?.tokenVersion).toBe(0);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// reset-password token validation (GET)
+// ---------------------------------------------------------------------------
+
+function makeValidateRequest(token: string | null, ip = "1.2.3.4") {
+  const url = new URL("http://localhost/api/v1/auth/reset-password");
+  if (token !== null) url.searchParams.set("token", token);
+  return new Request(url, {
+    method: "GET",
+    headers: { "x-forwarded-for": ip },
+  });
+}
+
+describe("GET /api/v1/auth/reset-password (token validation)", () => {
+  beforeEach(async () => {
+    vi.clearAllMocks();
+    resetRateLimits();
+    db = createDbMock();
+    vi.resetModules();
+  });
+
+  it("returns 200 for a valid token", async () => {
+    const user = db._seedUser({ email: "user@example.com" });
+    const tokenRecord = db._seedToken({ userId: user.id });
+    const { GET } = await import("./reset-password/route");
+
+    const res = await GET(makeValidateRequest(tokenRecord.token));
+    expect(res.status).toBe(200);
+  });
+
+  it("does not consume the token when validating", async () => {
+    const user = db._seedUser({ email: "user@example.com" });
+    const tokenRecord = db._seedToken({ userId: user.id });
+    const { GET } = await import("./reset-password/route");
+
+    await GET(makeValidateRequest(tokenRecord.token));
+
+    const stored = db._resetTokens.get(tokenRecord.token);
+    expect(stored?.usedAt).toBeNull();
+  });
+
+  it("returns 400 when token is missing", async () => {
+    const { GET } = await import("./reset-password/route");
+
+    const res = await GET(makeValidateRequest(null));
+    expect(res.status).toBe(400);
+  });
+
+  it("returns 400 for an unknown token", async () => {
+    const { GET } = await import("./reset-password/route");
+
+    const res = await GET(makeValidateRequest("does-not-exist"));
+    expect(res.status).toBe(400);
+  });
+
+  it("returns 400 for an expired token", async () => {
+    const user = db._seedUser({ email: "user@example.com" });
+    const tokenRecord = db._seedToken({
+      userId: user.id,
+      expiresAt: new Date(Date.now() - 1000),
+    });
+    const { GET } = await import("./reset-password/route");
+
+    const res = await GET(makeValidateRequest(tokenRecord.token));
+    expect(res.status).toBe(400);
+  });
+
+  it("returns 400 for an already used token", async () => {
+    const user = db._seedUser({ email: "user@example.com" });
+    const tokenRecord = db._seedToken({ userId: user.id, usedAt: new Date() });
+    const { GET } = await import("./reset-password/route");
+
+    const res = await GET(makeValidateRequest(tokenRecord.token));
+    expect(res.status).toBe(400);
   });
 });

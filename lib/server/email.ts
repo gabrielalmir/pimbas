@@ -13,5 +13,7 @@ type UserLike = {
 
 export async function sendPasswordResetEmail(user: UserLike, token: string): Promise<void> {
   // TODO(#11): integrate Resend (or another provider) to deliver the actual email.
-  console.info(`[email] password-reset token for ${user.email} (userId=${user.id}): ${token}`);
+  // SECURITY: never log the token — it is a credential that grants account access.
+  void token;
+  console.info(`[email] password-reset requested for userId=${user.id}`);
 }
