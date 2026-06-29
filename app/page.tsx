@@ -241,7 +241,7 @@ export default function Home() {
 
           <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {features.map(({ icon: Icon, title, description }, i) => (
-              <ScrollReveal key={title} delay={(Math.min(i + 1, 3)) as 1 | 2 | 3}>
+              <ScrollReveal key={title} delay={Math.min(i + 1, 3) as 1 | 2 | 3}>
                 <div className="h-full rounded-lg border border-[var(--pmb-paper-strong)] bg-card p-5 shadow-[0_8px_0_rgba(23,73,56,0.07),0_12px_24px_rgba(42,33,19,0.07)]">
                   <div className="mb-4 flex size-10 items-center justify-center rounded-md bg-primary text-primary-foreground">
                     <Icon className="size-5" aria-hidden="true" />

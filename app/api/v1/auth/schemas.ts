@@ -24,3 +24,17 @@ export const loginSchema = z.object({
 });
 
 export const refreshSchema = z.object({ refreshToken: z.string().min(1) });
+
+export const forgotPasswordSchema = z.object({
+  email: z
+    .string()
+    .trim()
+    .email()
+    .max(254)
+    .transform((value) => value.toLowerCase()),
+});
+
+export const resetPasswordSchema = z.object({
+  token: z.string().min(1),
+  password: passwordSchema,
+});

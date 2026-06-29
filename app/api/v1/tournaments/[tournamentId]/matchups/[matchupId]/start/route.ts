@@ -30,7 +30,7 @@ export async function POST(request: Request, { params }: Context) {
     const matchup = isThirdPlace
       ? tournament.thirdPlaceMatchup
       : tournament.matchups.find((item) => item.id === matchupId);
-    if (!matchup || !matchup.pairAId || !matchup.pairBId) {
+    if (!matchup?.pairAId || !matchup.pairBId) {
       return badRequest("Confronto ainda não tem as duas duplas definidas.");
     }
     if (!isMatchupReadyToStart(matchup)) {

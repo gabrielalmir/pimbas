@@ -103,6 +103,12 @@ export default function LoginPage() {
             Entrar
             <ArrowRight data-icon="inline-end" />
           </Button>
+          <Link
+            href="/forgot-password"
+            className="text-center text-sm font-medium text-muted-foreground"
+          >
+            Esqueceu a senha?
+          </Link>
         </form>
 
         <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-lg bg-muted p-3 text-sm">
