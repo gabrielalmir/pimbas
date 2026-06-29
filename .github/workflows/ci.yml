@@ -22,28 +22,14 @@ jobs:
     name: Lint, test and build
     runs-on: ubuntu-latest
     if: github.event_name != 'schedule'
-    services:
-      postgres:
-        image: postgres:16
-        env:
-          POSTGRES_USER: pimbas
-          POSTGRES_PASSWORD: pimbas
-          POSTGRES_DB: pimbas
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
     env:
       DATABASE_URL: ${{ env.CI_DATABASE_URL }}
       DIRECT_URL: ${{ env.CI_DATABASE_URL }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
       - name: Setup Bun
-        uses: oven-sh/setup-bun@v2
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6
       - name: Install dependencies
         run: bun install --frozen-lockfile
       - name: Generate Prisma client
@@ -62,13 +48,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
       - name: Setup Bun
-        uses: oven-sh/setup-bun@v2
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6
       - name: Install dependencies
         run: bun install --frozen-lockfile
       - name: Scan known vulnerabilities
-        run: bunx osv-scanner --lockfile=bun.lock || true
+        uses: google/osv-scanner-action/osv-scanner-action@9a498708959aeaef5ef730655706c5a1df1edbc2
+        with:
+          scan-args: |-
+            --lockfile=bun.lock
 
   docker-build:
     name: Docker build
@@ -77,6 +66,6 @@ jobs:
     needs: quality
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
       - name: Build image
         run: docker build --build-arg DATABASE_URL="${{ env.CI_DATABASE_URL }}" -t pimbas .
