@@ -34,7 +34,13 @@ export async function POST(request: Request) {
     data: { token, userId: user.id, expiresAt, usedAt: null },
   });
 
-  await sendPasswordResetEmail(user, token);
+  // Keep the response uniform even if delivery fails, so timing/status cannot
+  // be used to enumerate accounts. Log the failure without leaking the token.
+  try {
+    await sendPasswordResetEmail(user, token);
+  } catch {
+    console.error(`[forgot-password] failed to send reset email for userId=${user.id}`);
+  }
 
   return NextResponse.json({
     message: "If that email is registered, you will receive a reset link.",
