@@ -1,156 +1,91 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
+import type { getDb as GetDb } from "@/lib/server/prisma";
 import { resetRateLimits } from "@/lib/server/rate-limit";
+import { startRealDb } from "@/test/real-db";
+
+// Email delivery is an external side effect (pending Resend integration, #11),
+// so it is the only collaborator that stays mocked. The database is REAL: every
+// query below runs against an actual Postgres engine (PGlite) over the wire
+// protocol, through the application's real Prisma client.
+const mockSendEmail = vi.fn<(user: { email: string }, token: string) => Promise<void>>();
+vi.mock("@/lib/server/email", () => ({
+  sendPasswordResetEmail: (...args: [{ email: string }, string]) => mockSendEmail(...args),
+}));
+
+type ForgotRoute = typeof import("./forgot-password/route");
+type ResetRoute = typeof import("./reset-password/route");
+
+let realDb: Awaited<ReturnType<typeof startRealDb>>;
+let db: ReturnType<typeof GetDb>;
+let forgotPost: ForgotRoute["POST"];
+let resetPost: ResetRoute["POST"];
+let resetGet: ResetRoute["GET"];
+
+beforeAll(async () => {
+  realDb = await startRealDb();
+  process.env.DATABASE_URL = realDb.databaseUrl;
+
+  // Imported only after DATABASE_URL points at the test database, so the lazy
+  // getDb() singleton connects to PGlite rather than any ambient database.
+  const prismaModule = await import("@/lib/server/prisma");
+  db = prismaModule.getDb();
+  ({ POST: forgotPost } = await import("./forgot-password/route"));
+  ({ POST: resetPost, GET: resetGet } = await import("./reset-password/route"));
+}, 60_000);
+
+afterAll(async () => {
+  await realDb.stop();
+});
+
+beforeEach(async () => {
+  vi.clearAllMocks();
+  resetRateLimits();
+  await realDb.reset();
+});
 
 // ---------------------------------------------------------------------------
-// Minimal DB mock for password reset flows
+// Seed helpers (real rows)
 // ---------------------------------------------------------------------------
 
-type MockUser = {
-  id: string;
-  email: string;
-  passwordHash: string | null;
-  googleSub: string | null;
-  tokenVersion: number;
-};
+let userSeq = 0;
 
-type MockResetToken = {
-  id: string;
-  token: string;
-  userId: string;
-  expiresAt: Date;
-  usedAt: Date | null;
-};
-
-function createDbMock() {
-  const users = new Map<string, MockUser>();
-  const resetTokens = new Map<string, MockResetToken>();
-  let userSeq = 1;
-  let tokenSeq = 1;
-
-  return {
-    _users: users,
-    _resetTokens: resetTokens,
-
-    _seedUser(overrides: Partial<MockUser> = {}): MockUser {
-      const user: MockUser = {
-        id: `user-${userSeq++}`,
-        email: `user${userSeq}@example.com`,
-        passwordHash: "hashed-password",
-        googleSub: null,
-        tokenVersion: 0,
-        ...overrides,
-      };
-      users.set(user.id, user);
-      return user;
+async function seedUser(
+  overrides: Partial<{ email: string; passwordHash: string | null; googleSub: string | null }> = {},
+) {
+  userSeq += 1;
+  return db.user.create({
+    data: {
+      email: overrides.email ?? `user${userSeq}@example.com`,
+      name: `User ${userSeq}`,
+      passwordHash:
+        overrides.passwordHash === undefined ? "hashed-password" : overrides.passwordHash,
+      googleSub: overrides.googleSub ?? null,
     },
+  });
+}
 
-    _seedToken(overrides: Partial<MockResetToken> = {}): MockResetToken {
-      const token: MockResetToken = {
-        id: `token-${tokenSeq++}`,
-        token: `valid-token-${tokenSeq}`,
-        userId: "user-1",
-        expiresAt: new Date(Date.now() + 3_600_000),
-        usedAt: null,
-        ...overrides,
-      };
-      resetTokens.set(token.token, token);
-      return token;
+async function seedToken(
+  userId: string,
+  overrides: Partial<{ token: string; expiresAt: Date; usedAt: Date | null }> = {},
+) {
+  return db.passwordResetToken.create({
+    data: {
+      token: overrides.token ?? `valid-token-${userId}`,
+      userId,
+      expiresAt: overrides.expiresAt ?? new Date(Date.now() + 3_600_000),
+      usedAt: overrides.usedAt ?? null,
     },
-
-    user: {
-      findUnique({ where }: { where: { email?: string; id?: string } }) {
-        const found = where.email
-          ? [...users.values()].find((u) => u.email === where.email)
-          : where.id
-            ? users.get(where.id)
-            : undefined;
-        return Promise.resolve(found ?? null);
-      },
-      update({
-        where,
-        data,
-      }: {
-        where: { id: string };
-        data: { passwordHash?: string | null; tokenVersion?: number | { increment: number } };
-      }) {
-        const user = users.get(where.id);
-        if (!user) throw new Error("User not found");
-        if (
-          data.tokenVersion &&
-          typeof data.tokenVersion === "object" &&
-          "increment" in data.tokenVersion
-        ) {
-          user.tokenVersion += data.tokenVersion.increment;
-        } else if (typeof data.tokenVersion === "number") {
-          user.tokenVersion = data.tokenVersion;
-        }
-        if (data.passwordHash !== undefined) user.passwordHash = data.passwordHash;
-        users.set(user.id, user);
-        return Promise.resolve(user);
-      },
-    },
-
-    passwordResetToken: {
-      create({ data }: { data: Omit<MockResetToken, "id"> }) {
-        const record: MockResetToken = { id: `token-${tokenSeq++}`, ...data };
-        resetTokens.set(record.token, record);
-        return Promise.resolve(record);
-      },
-      findUnique({ where }: { where: { token: string } }) {
-        return Promise.resolve(resetTokens.get(where.token) ?? null);
-      },
-      update({ where, data }: { where: { token: string }; data: Partial<MockResetToken> }) {
-        const record = resetTokens.get(where.token);
-        if (!record) throw new Error("Token not found");
-        Object.assign(record, data);
-        resetTokens.set(record.token, record);
-        return Promise.resolve(record);
-      },
-      deleteMany({ where }: { where: { userId: string } }) {
-        let count = 0;
-        for (const [key, t] of resetTokens.entries()) {
-          if (t.userId === where.userId) {
-            resetTokens.delete(key);
-            count++;
-          }
-        }
-        return Promise.resolve({ count });
-      },
-    },
-  };
+  });
 }
 
 // ---------------------------------------------------------------------------
-// Shared mocks
-// ---------------------------------------------------------------------------
-
-let db: ReturnType<typeof createDbMock>;
-
-vi.mock("@/lib/server/prisma", () => ({
-  getDb: () => db,
-}));
-
-const mockSendEmail = vi.fn().mockResolvedValue(undefined);
-vi.mock("@/lib/server/email", () => ({
-  sendPasswordResetEmail: (...args: unknown[]) => mockSendEmail(...args),
-}));
-
-vi.mock("@/lib/server/hash", () => ({
-  hashPassword: (pw: string) => Promise.resolve(`hashed:${pw}`),
-  verifyPassword: (hash: string, pw: string) => Promise.resolve(hash === `hashed:${pw}`),
-}));
-
-// ---------------------------------------------------------------------------
-// Helpers
+// Request helpers
 // ---------------------------------------------------------------------------
 
 function makeRequest(body: unknown, ip = "1.2.3.4") {
   return new Request("http://localhost/api/v1/auth/forgot-password", {
     method: "POST",
-    headers: {
-      "content-type": "application/json",
-      "x-forwarded-for": ip,
-    },
+    headers: { "content-type": "application/json", "x-forwarded-for": ip },
     body: JSON.stringify(body),
   });
 }
@@ -158,12 +93,15 @@ function makeRequest(body: unknown, ip = "1.2.3.4") {
 function makeResetRequest(body: unknown, ip = "1.2.3.4") {
   return new Request("http://localhost/api/v1/auth/reset-password", {
     method: "POST",
-    headers: {
-      "content-type": "application/json",
-      "x-forwarded-for": ip,
-    },
+    headers: { "content-type": "application/json", "x-forwarded-for": ip },
     body: JSON.stringify(body),
   });
+}
+
+function makeValidateRequest(token: string | null, ip = "1.2.3.4") {
+  const url = new URL("http://localhost/api/v1/auth/reset-password");
+  if (token !== null) url.searchParams.set("token", token);
+  return new Request(url, { method: "GET", headers: { "x-forwarded-for": ip } });
 }
 
 // ---------------------------------------------------------------------------
@@ -171,202 +109,212 @@ function makeResetRequest(body: unknown, ip = "1.2.3.4") {
 // ---------------------------------------------------------------------------
 
 describe("POST /api/v1/auth/forgot-password", () => {
-  beforeEach(async () => {
-    vi.clearAllMocks();
-    resetRateLimits();
-    db = createDbMock();
-    vi.resetModules();
-  });
-
   it("returns 200 and sends email for a known user", async () => {
-    db._seedUser({ email: "user@example.com", googleSub: null });
-    const { POST } = await import("./forgot-password/route");
+    await seedUser({ email: "user@example.com" });
 
-    const res = await POST(makeRequest({ email: "user@example.com" }));
+    const res = await forgotPost(makeRequest({ email: "user@example.com" }));
     expect(res.status).toBe(200);
     expect(mockSendEmail).toHaveBeenCalledOnce();
     expect(mockSendEmail).toHaveBeenCalledWith(
       expect.objectContaining({ email: "user@example.com" }),
       expect.any(String),
     );
+
+    const tokens = await db.passwordResetToken.findMany();
+    expect(tokens).toHaveLength(1);
   });
 
   it("returns 200 silently for unknown email (no enumeration)", async () => {
-    const { POST } = await import("./forgot-password/route");
-
-    const res = await POST(makeRequest({ email: "ghost@example.com" }));
+    const res = await forgotPost(makeRequest({ email: "ghost@example.com" }));
     expect(res.status).toBe(200);
     expect(mockSendEmail).not.toHaveBeenCalled();
+    expect(await db.passwordResetToken.count()).toBe(0);
   });
 
   it("returns 200 silently for OAuth-only user (no passwordHash)", async () => {
-    db._seedUser({ email: "oauth@example.com", passwordHash: null, googleSub: "google-id-123" });
-    const { POST } = await import("./forgot-password/route");
+    await seedUser({ email: "oauth@example.com", passwordHash: null, googleSub: "google-id-123" });
 
-    const res = await POST(makeRequest({ email: "oauth@example.com" }));
+    const res = await forgotPost(makeRequest({ email: "oauth@example.com" }));
     expect(res.status).toBe(200);
     expect(mockSendEmail).not.toHaveBeenCalled();
+    expect(await db.passwordResetToken.count()).toBe(0);
   });
 
   it("returns 400 for invalid email", async () => {
-    const { POST } = await import("./forgot-password/route");
-
-    const res = await POST(makeRequest({ email: "not-an-email" }));
+    const res = await forgotPost(makeRequest({ email: "not-an-email" }));
     expect(res.status).toBe(400);
   });
 
   it("returns 400 for missing body", async () => {
-    const { POST } = await import("./forgot-password/route");
-
     const req = new Request("http://localhost/api/v1/auth/forgot-password", {
       method: "POST",
       headers: { "x-forwarded-for": "1.2.3.4" },
     });
-    const res = await POST(req);
+    const res = await forgotPost(req);
     expect(res.status).toBe(400);
   });
 
   it("returns 429 when rate limit exceeded", async () => {
-    const { POST } = await import("./forgot-password/route");
     const ip = "9.9.9.9";
-
     for (let i = 0; i < 5; i++) {
-      await POST(makeRequest({ email: "user@example.com" }, ip));
+      await forgotPost(makeRequest({ email: "user@example.com" }, ip));
     }
-    const res = await POST(makeRequest({ email: "user@example.com" }, ip));
+    const res = await forgotPost(makeRequest({ email: "user@example.com" }, ip));
     expect(res.status).toBe(429);
   });
 
-  it("creates a reset token in the database", async () => {
-    db._seedUser({ email: "user@example.com" });
-    const { POST } = await import("./forgot-password/route");
+  it("replaces previously issued tokens for the same user", async () => {
+    const user = await seedUser({ email: "rotate@example.com" });
+    await seedToken(user.id, { token: "old-token" });
 
-    await POST(makeRequest({ email: "user@example.com" }));
-    expect(db._resetTokens.size).toBe(1);
+    await forgotPost(makeRequest({ email: "rotate@example.com" }));
+
+    const tokens = await db.passwordResetToken.findMany({ where: { userId: user.id } });
+    expect(tokens).toHaveLength(1);
+    expect(tokens[0].token).not.toBe("old-token");
   });
 
-  it("token expires in the future", async () => {
-    db._seedUser({ email: "user@example.com" });
-    const { POST } = await import("./forgot-password/route");
+  it("creates a token that expires in the future", async () => {
+    await seedUser({ email: "expiry@example.com" });
 
-    await POST(makeRequest({ email: "user@example.com" }));
-    const [token] = db._resetTokens.values();
-    expect(token.expiresAt.getTime()).toBeGreaterThan(Date.now());
+    await forgotPost(makeRequest({ email: "expiry@example.com" }));
+
+    const token = await db.passwordResetToken.findFirst();
+    expect(token?.expiresAt.getTime()).toBeGreaterThan(Date.now());
   });
 });
 
 // ---------------------------------------------------------------------------
-// reset-password endpoint
+// reset-password endpoint (POST)
 // ---------------------------------------------------------------------------
 
 describe("POST /api/v1/auth/reset-password", () => {
-  beforeEach(async () => {
-    vi.clearAllMocks();
-    resetRateLimits();
-    db = createDbMock();
-    vi.resetModules();
-  });
-
   it("resets password and invalidates sessions for a valid token", async () => {
-    const user = db._seedUser({ email: "user@example.com" });
-    const tokenRecord = db._seedToken({ userId: user.id });
-    const { POST } = await import("./reset-password/route");
+    const user = await seedUser({ email: "user@example.com" });
+    const token = await seedToken(user.id);
+    const { verifyPassword } = await import("@/lib/server/hash");
 
-    const res = await POST(
-      makeResetRequest({ token: tokenRecord.token, password: "NewPassword1!" }),
+    const res = await resetPost(
+      makeResetRequest({ token: token.token, password: "NewPassword1!" }),
     );
     expect(res.status).toBe(200);
 
-    const updatedUser = db._users.get(user.id);
-    expect(updatedUser?.passwordHash).toBe("hashed:NewPassword1!");
-    expect(updatedUser?.tokenVersion).toBe(1);
+    const updated = await db.user.findUniqueOrThrow({ where: { id: user.id } });
+    expect(updated.tokenVersion).toBe(1);
+    expect(updated.passwordHash).not.toBeNull();
+    expect(await verifyPassword(updated.passwordHash as string, "NewPassword1!")).toBe(true);
   });
 
   it("marks token as used after reset", async () => {
-    const user = db._seedUser({ email: "user@example.com" });
-    const tokenRecord = db._seedToken({ userId: user.id });
-    const { POST } = await import("./reset-password/route");
+    const user = await seedUser({ email: "user@example.com" });
+    const token = await seedToken(user.id);
 
-    await POST(makeResetRequest({ token: tokenRecord.token, password: "NewPassword1!" }));
+    await resetPost(makeResetRequest({ token: token.token, password: "NewPassword1!" }));
 
-    const stored = db._resetTokens.get(tokenRecord.token);
+    const stored = await db.passwordResetToken.findUnique({ where: { token: token.token } });
     expect(stored?.usedAt).not.toBeNull();
   });
 
   it("returns 400 for an expired token", async () => {
-    const user = db._seedUser({ email: "user@example.com" });
-    const tokenRecord = db._seedToken({
-      userId: user.id,
-      expiresAt: new Date(Date.now() - 1000),
-    });
-    const { POST } = await import("./reset-password/route");
+    const user = await seedUser({ email: "user@example.com" });
+    const token = await seedToken(user.id, { expiresAt: new Date(Date.now() - 1000) });
 
-    const res = await POST(
-      makeResetRequest({ token: tokenRecord.token, password: "NewPassword1!" }),
+    const res = await resetPost(
+      makeResetRequest({ token: token.token, password: "NewPassword1!" }),
     );
     expect(res.status).toBe(400);
   });
 
   it("returns 400 for an already used token", async () => {
-    const user = db._seedUser({ email: "user@example.com" });
-    const tokenRecord = db._seedToken({ userId: user.id, usedAt: new Date() });
-    const { POST } = await import("./reset-password/route");
+    const user = await seedUser({ email: "user@example.com" });
+    const token = await seedToken(user.id, { usedAt: new Date() });
 
-    const res = await POST(
-      makeResetRequest({ token: tokenRecord.token, password: "NewPassword1!" }),
+    const res = await resetPost(
+      makeResetRequest({ token: token.token, password: "NewPassword1!" }),
     );
     expect(res.status).toBe(400);
   });
 
   it("returns 400 for an unknown token", async () => {
-    const { POST } = await import("./reset-password/route");
-
-    const res = await POST(
+    const res = await resetPost(
       makeResetRequest({ token: "non-existent-token", password: "NewPass1!" }),
     );
     expect(res.status).toBe(400);
   });
 
   it("returns 400 for password shorter than 8 characters", async () => {
-    const user = db._seedUser({ email: "user@example.com" });
-    const tokenRecord = db._seedToken({ userId: user.id });
-    const { POST } = await import("./reset-password/route");
+    const user = await seedUser({ email: "user@example.com" });
+    const token = await seedToken(user.id);
 
-    const res = await POST(makeResetRequest({ token: tokenRecord.token, password: "short" }));
+    const res = await resetPost(makeResetRequest({ token: token.token, password: "short" }));
     expect(res.status).toBe(400);
   });
 
   it("returns 400 for missing fields", async () => {
-    const { POST } = await import("./reset-password/route");
-
-    const res = await POST(makeResetRequest({ token: "some-token" }));
+    const res = await resetPost(makeResetRequest({ token: "some-token" }));
     expect(res.status).toBe(400);
   });
 
   it("returns 429 when rate limit exceeded", async () => {
-    const { POST } = await import("./reset-password/route");
     const ip = "8.8.8.8";
-
     for (let i = 0; i < 5; i++) {
-      await POST(makeResetRequest({ token: "tok", password: "Pass1234!" }, ip));
+      await resetPost(makeResetRequest({ token: "tok", password: "Pass1234!" }, ip));
     }
-    const res = await POST(makeResetRequest({ token: "tok", password: "Pass1234!" }, ip));
+    const res = await resetPost(makeResetRequest({ token: "tok", password: "Pass1234!" }, ip));
     expect(res.status).toBe(429);
   });
 
   it("does not change password on expired token", async () => {
-    const user = db._seedUser({ email: "user@example.com", passwordHash: "hashed:OldPass1!" });
-    const tokenRecord = db._seedToken({
-      userId: user.id,
-      expiresAt: new Date(Date.now() - 1000),
-    });
-    const { POST } = await import("./reset-password/route");
+    const user = await seedUser({ email: "user@example.com", passwordHash: "original-hash" });
+    const token = await seedToken(user.id, { expiresAt: new Date(Date.now() - 1000) });
 
-    await POST(makeResetRequest({ token: tokenRecord.token, password: "NewPass1!" }));
+    await resetPost(makeResetRequest({ token: token.token, password: "NewPass1!" }));
 
-    const unchanged = db._users.get(user.id);
-    expect(unchanged?.passwordHash).toBe("hashed:OldPass1!");
-    expect(unchanged?.tokenVersion).toBe(0);
+    const unchanged = await db.user.findUniqueOrThrow({ where: { id: user.id } });
+    expect(unchanged.passwordHash).toBe("original-hash");
+    expect(unchanged.tokenVersion).toBe(0);
+  });
+
+  it("allows a token to be used only once under concurrent requests (atomic single-use)", async () => {
+    const user = await seedUser({ email: "race@example.com" });
+    const token = await seedToken(user.id);
+    const { verifyPassword } = await import("@/lib/server/hash");
+
+    // Fire two resets for the same token at once. The single-use guarantee comes
+    // from the conditional UPDATE: only one request can flip used_at from null.
+    //
+    // NOTE: on a real Postgres the losing request sees `count === 0` and returns
+    // 400. PGlite (the in-process test engine) cannot run two write
+    // transactions concurrently, so the loser's transaction is aborted and the
+    // handler rejects (equivalent to a 500). Either way the security invariant
+    // below must hold: exactly one success and exactly one password change.
+    const results = await Promise.allSettled([
+      resetPost(makeResetRequest({ token: token.token, password: "FirstPass1!" }, "10.0.0.1")),
+      resetPost(makeResetRequest({ token: token.token, password: "SecondPass1!" }, "10.0.0.2")),
+    ]);
+
+    const okCount = results.filter(
+      (r) => r.status === "fulfilled" && r.value.status === 200,
+    ).length;
+    expect(okCount).toBe(1);
+
+    // The token is consumed exactly once and sessions are revoked exactly once.
+    const updated = await db.user.findUniqueOrThrow({ where: { id: user.id } });
+    expect(updated.tokenVersion).toBe(1);
+
+    const stored = await db.passwordResetToken.findUnique({ where: { token: token.token } });
+    expect(stored?.usedAt).not.toBeNull();
+
+    // The stored password matches exactly one of the two submitted values.
+    const matchesFirst = await verifyPassword(updated.passwordHash as string, "FirstPass1!");
+    const matchesSecond = await verifyPassword(updated.passwordHash as string, "SecondPass1!");
+    expect(matchesFirst !== matchesSecond).toBe(true);
+
+    // A subsequent reset with the now-used token is always rejected.
+    const replay = await resetPost(
+      makeResetRequest({ token: token.token, password: "ReplayPass1!" }, "10.0.0.3"),
+    );
+    expect(replay.status).toBe(400);
   });
 });
 
@@ -374,75 +322,48 @@ describe("POST /api/v1/auth/reset-password", () => {
 // reset-password token validation (GET)
 // ---------------------------------------------------------------------------
 
-function makeValidateRequest(token: string | null, ip = "1.2.3.4") {
-  const url = new URL("http://localhost/api/v1/auth/reset-password");
-  if (token !== null) url.searchParams.set("token", token);
-  return new Request(url, {
-    method: "GET",
-    headers: { "x-forwarded-for": ip },
-  });
-}
-
 describe("GET /api/v1/auth/reset-password (token validation)", () => {
-  beforeEach(async () => {
-    vi.clearAllMocks();
-    resetRateLimits();
-    db = createDbMock();
-    vi.resetModules();
-  });
-
   it("returns 200 for a valid token", async () => {
-    const user = db._seedUser({ email: "user@example.com" });
-    const tokenRecord = db._seedToken({ userId: user.id });
-    const { GET } = await import("./reset-password/route");
+    const user = await seedUser({ email: "user@example.com" });
+    const token = await seedToken(user.id);
 
-    const res = await GET(makeValidateRequest(tokenRecord.token));
+    const res = await resetGet(makeValidateRequest(token.token));
     expect(res.status).toBe(200);
   });
 
   it("does not consume the token when validating", async () => {
-    const user = db._seedUser({ email: "user@example.com" });
-    const tokenRecord = db._seedToken({ userId: user.id });
-    const { GET } = await import("./reset-password/route");
+    const user = await seedUser({ email: "user@example.com" });
+    const token = await seedToken(user.id);
 
-    await GET(makeValidateRequest(tokenRecord.token));
+    await resetGet(makeValidateRequest(token.token));
 
-    const stored = db._resetTokens.get(tokenRecord.token);
+    const stored = await db.passwordResetToken.findUnique({ where: { token: token.token } });
     expect(stored?.usedAt).toBeNull();
   });
 
   it("returns 400 when token is missing", async () => {
-    const { GET } = await import("./reset-password/route");
-
-    const res = await GET(makeValidateRequest(null));
+    const res = await resetGet(makeValidateRequest(null));
     expect(res.status).toBe(400);
   });
 
   it("returns 400 for an unknown token", async () => {
-    const { GET } = await import("./reset-password/route");
-
-    const res = await GET(makeValidateRequest("does-not-exist"));
+    const res = await resetGet(makeValidateRequest("does-not-exist"));
     expect(res.status).toBe(400);
   });
 
   it("returns 400 for an expired token", async () => {
-    const user = db._seedUser({ email: "user@example.com" });
-    const tokenRecord = db._seedToken({
-      userId: user.id,
-      expiresAt: new Date(Date.now() - 1000),
-    });
-    const { GET } = await import("./reset-password/route");
+    const user = await seedUser({ email: "user@example.com" });
+    const token = await seedToken(user.id, { expiresAt: new Date(Date.now() - 1000) });
 
-    const res = await GET(makeValidateRequest(tokenRecord.token));
+    const res = await resetGet(makeValidateRequest(token.token));
     expect(res.status).toBe(400);
   });
 
   it("returns 400 for an already used token", async () => {
-    const user = db._seedUser({ email: "user@example.com" });
-    const tokenRecord = db._seedToken({ userId: user.id, usedAt: new Date() });
-    const { GET } = await import("./reset-password/route");
+    const user = await seedUser({ email: "user@example.com" });
+    const token = await seedToken(user.id, { usedAt: new Date() });
 
-    const res = await GET(makeValidateRequest(tokenRecord.token));
+    const res = await resetGet(makeValidateRequest(token.token));
     expect(res.status).toBe(400);
   });
 });

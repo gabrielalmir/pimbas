@@ -32,13 +32,25 @@ export async function POST(request: Request) {
   const db = getDb();
   const { token, password } = parsed.data;
 
-  const tokenRecord = await db.passwordResetToken.findUnique({ where: { token } });
-
-  if (!tokenRecord) return badRequest("Invalid or expired reset token.");
-  if (tokenRecord.expiresAt < new Date()) return badRequest("Invalid or expired reset token.");
-  if (tokenRecord.usedAt !== null) return badRequest("Invalid or expired reset token.");
-
   const newHash = await hashPassword(password);
+
+  // Atomically claim the token: a single conditional UPDATE that only matches a
+  // token that is still unused and not expired. This is what guarantees
+  // single-use under concurrency — two simultaneous requests race on the same
+  // row, but the database serializes the writes so only the first sees
+  // `count === 1`; the second sees `count === 0` and is rejected. This holds on
+  // any real Postgres without needing an interactive transaction.
+  const claim = await db.passwordResetToken.updateMany({
+    where: { token, usedAt: null, expiresAt: { gt: new Date() } },
+    data: { usedAt: new Date() },
+  });
+  if (claim.count === 0) return badRequest("Invalid or expired reset token.");
+
+  // The token was successfully consumed above; now apply the password change and
+  // revoke existing sessions. If this step were to fail, the token stays
+  // consumed (fail-safe): the user simply requests a new reset link.
+  const tokenRecord = await db.passwordResetToken.findUnique({ where: { token } });
+  if (!tokenRecord) return badRequest("Invalid or expired reset token.");
 
   await db.user.update({
     where: { id: tokenRecord.userId },
@@ -46,11 +58,6 @@ export async function POST(request: Request) {
       passwordHash: newHash,
       tokenVersion: { increment: 1 },
     },
-  });
-
-  await db.passwordResetToken.update({
-    where: { token },
-    data: { usedAt: new Date() },
   });
 
   return NextResponse.json({ message: "Password reset successfully." });
