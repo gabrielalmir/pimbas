@@ -26,7 +26,6 @@ export async function requireGroupAdmin(
   userId: string,
 ): Promise<GroupAuthzResult> {
   const membership = await findGroupMembership(db, groupId, userId);
-  if (!membership || membership.role !== "admin")
-    return { response: forbidden("Admin access required") };
+  if (membership?.role !== "admin") return { response: forbidden("Admin access required") };
   return { membership };
 }

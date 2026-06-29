@@ -95,7 +95,7 @@ export function createThirdPlaceMatchup(): TournamentMatchup {
 export function advanceTournament(tournament: Tournament, finishedMatchupId: string): Tournament {
   const matchups = tournament.matchups.map((item) => ({ ...item }));
   const matchup = matchups.find((item) => item.id === finishedMatchupId);
-  if (!matchup || !matchup.winnerPairId) return tournament;
+  if (!matchup?.winnerPairId) return tournament;
 
   const loserPairId = matchup.pairAId === matchup.winnerPairId ? matchup.pairBId : matchup.pairAId;
   const thirdPlaceMatchup = tournament.thirdPlaceMatchup
