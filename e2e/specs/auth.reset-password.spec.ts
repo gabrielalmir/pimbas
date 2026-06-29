@@ -8,7 +8,9 @@ test.describe("reset de senha", () => {
   test("página forgot-password existe e tem formulário de e-mail", async ({ page }) => {
     await page.goto(FORGOT_PASSWORD_URL);
 
-    await expect(page.getByRole("heading", { name: /recuperar|redefinir|esqueceu/i })).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: /recuperar|redefinir|esqueceu/i }),
+    ).toBeVisible();
     await expect(page.getByLabel(/e-?mail/i)).toBeVisible();
     await expect(page.getByRole("button", { name: /enviar|solicitar/i })).toBeVisible();
   });
@@ -42,9 +44,7 @@ test.describe("reset de senha", () => {
   test("página reset-password com token inválido exibe erro", async ({ page }) => {
     await page.goto("/reset-password?token=token-invalido-qualquer");
 
-    await expect(
-      page.getByText(/inválido|expirado|invalid|expired|não encontrado/i),
-    ).toBeVisible();
+    await expect(page.getByText(/inválido|expirado|invalid|expired|não encontrado/i)).toBeVisible();
   });
 
   test("página reset-password sem token redireciona ou exibe erro", async ({ page }) => {

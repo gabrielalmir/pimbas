@@ -156,6 +156,37 @@ export function logout() {
   clearTokens();
 }
 
+async function postMessage(path: string, body: Record<string, string>): Promise<void> {
+  const res = await fetch(`${API_URL}${path}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) {
+    const data = await res.json().catch(() => undefined);
+    throw new Error(data?.message || `HTTP ${res.status}`);
+  }
+}
+
+export async function requestPasswordReset(email: string): Promise<void> {
+  await postMessage("/api/v1/auth/forgot-password", { email });
+}
+
+export async function resetPassword(token: string, password: string): Promise<void> {
+  await postMessage("/api/v1/auth/reset-password", { token, password });
+}
+
+export async function validateResetToken(token: string): Promise<boolean> {
+  try {
+    const res = await fetch(
+      `${API_URL}/api/v1/auth/reset-password?token=${encodeURIComponent(token)}`,
+    );
+    return res.ok;
+  } catch {
+    return false;
+  }
+}
+
 export function getAuthSnapshot() {
   return tokens;
 }

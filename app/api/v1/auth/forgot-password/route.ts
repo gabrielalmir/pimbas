@@ -27,6 +27,9 @@ export async function POST(request: Request) {
   const token = randomBytes(32).toString("hex");
   const expiresAt = new Date(Date.now() + TOKEN_EXPIRY_MS);
 
+  // Invalidate any previously issued tokens for this user before creating a new one.
+  await db.passwordResetToken.deleteMany({ where: { userId: user.id } });
+
   await db.passwordResetToken.create({
     data: { token, userId: user.id, expiresAt, usedAt: null },
   });

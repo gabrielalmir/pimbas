@@ -5,6 +5,24 @@ import { getDb } from "@/lib/server/prisma";
 import { isRateLimited } from "@/lib/server/rate-limit";
 import { resetPasswordSchema } from "../schemas";
 
+// Validates a reset token without consuming it, so the UI can decide whether to
+// show the new-password form or an "invalid/expired link" message on load.
+export async function GET(request: Request) {
+  if (isRateLimited(request, "auth:reset-password", 5, 60_000)) return tooManyRequests();
+
+  const token = new URL(request.url).searchParams.get("token");
+  if (!token) return badRequest("Invalid or expired reset token.");
+
+  const db = getDb();
+  const tokenRecord = await db.passwordResetToken.findUnique({ where: { token } });
+
+  if (!tokenRecord) return badRequest("Invalid or expired reset token.");
+  if (tokenRecord.expiresAt < new Date()) return badRequest("Invalid or expired reset token.");
+  if (tokenRecord.usedAt !== null) return badRequest("Invalid or expired reset token.");
+
+  return NextResponse.json({ valid: true });
+}
+
 export async function POST(request: Request) {
   if (isRateLimited(request, "auth:reset-password", 5, 60_000)) return tooManyRequests();
 
