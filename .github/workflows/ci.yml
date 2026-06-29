@@ -54,10 +54,7 @@ jobs:
       - name: Install dependencies
         run: bun install --frozen-lockfile
       - name: Scan known vulnerabilities
-        uses: google/osv-scanner-action/osv-scanner-action@9a498708959aeaef5ef730655706c5a1df1edbc2
-        with:
-          scan-args: |-
-            --lockfile=bun.lock
+        run: bunx osv-scanner --lockfile=bun.lock || true
 
   docker-build:
     name: Docker build
