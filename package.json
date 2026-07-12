@@ -30,7 +30,7 @@
     "clsx": "^2.1.1",
     "jose": "^6.2.3",
     "lucide-react": "^1.21.0",
-    "next": "16.2.9",
+    "next": "16.2.10",
     "react": "19.2.7",
     "react-dom": "19.2.7",
     "resend": "^6.16.0",
@@ -38,7 +38,7 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
-    "@biomejs/biome": "2.5.1",
+    "@biomejs/biome": "2.5.3",
     "@playwright/test": "^1.61.1",
     "@tailwindcss/postcss": "^4.3.1",
     "@tanstack/react-query-devtools": "^5.101.2",
@@ -50,7 +50,7 @@
     "babel-plugin-react-compiler": "1.0.0",
     "prisma": "^7.8.0",
     "tailwindcss": "^4.3.1",
-    "typescript": "^6.0.3",
+    "typescript": "^7.0.2",
     "vitest": "^4.1.9"
   },
   "ignoreScripts": ["sharp", "unrs-resolver"],
